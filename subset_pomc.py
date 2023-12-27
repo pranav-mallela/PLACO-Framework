@@ -29,7 +29,7 @@ def pomc(n, hcm_list, mpv_list):
         x = max(P, key=lambda x: (f(x, hcm_list, mpv), -c(x)))
         subset = [i for i in range(len(x)) if x[i] == 1]
         humans.append(subset)
-        print(len(humans)) if len(humans)%1000 == 0 else None
+        # print(len(humans)) if len(humans)%1000 == 0 else None
     return humans
     
 
@@ -71,7 +71,8 @@ def f(x, hcm_list, mpv):
 
     subset = [i for i in range(len(x)) if x[i] == 1]
     num_classes = 10
-    _, est = test_Yhm(hcm_list, mpv)
+    # _, est = test_Yhm(hcm_list, mpv)
+    est = np.random.randint(0,10,len(hcm_list))     #random estimation
 
     m = np.array([[func(hcm_list[i][est[i]][j]) for j in range(num_classes)] for i in subset])
     m *= (m > 1)

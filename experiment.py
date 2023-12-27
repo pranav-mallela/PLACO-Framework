@@ -62,9 +62,9 @@ def get_acc(y_pred, y_true):
     print("Invalid Arguments")
 
 def main():
-    n_runs = 1
-    # test_sizes = [0.999, 0.99, 0.9, 0.0001]
-    test_sizes = [0.999]
+    n_runs = 10
+    test_sizes = [0.999, 0.99, 0.9, 0.0001]
+    # test_sizes = [0.999]
 
     out_fpath = './output/'
     os.makedirs(out_fpath, exist_ok=True)
@@ -88,12 +88,12 @@ def main():
                 # ('weighted_mode_policy', weighted_mode_policy, False),
                 # ('select_all_policy', select_all_policy, False),
                 # ('random', random_policy, False),
-                ('lb_best_policy', lb_best_policy, True),
-                ('pseudo_lb_best_policy_overloaded', pseudo_lb_best_policy_overloaded, False),
+                # ('lb_best_policy', lb_best_policy, True),
+                # ('pseudo_lb_best_policy_overloaded', pseudo_lb_best_policy_overloaded, False),
                 # ('knapsack_instance_wise_subsets', knapsack_instance_wise_subsets, False),
                 # ('knapsack_dynamicValue_using_alignment', knapsack_dynamicValue_using_alignment, False),
                 ('pomc', pomc, False),
-                ('eamc', eamc, False),
+                # ('eamc', eamc, False),
             ]
 
             acc_data = []
@@ -188,7 +188,7 @@ def main():
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}_eamc_pf.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}_{i}_pomc_f.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)
