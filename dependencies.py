@@ -2,7 +2,9 @@
 # accuracies = [0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.50] # must be in non-increasing order
 # accuracies = [0.80, 0.75, 0.70, 0.65] # must be in non-increasing order
 # accuracies = [0.7] * 5
-accuracies = [0.8,0.77,0.28,0.53,0.67,0.15,0.35,0.12,0.45,0.64] #variance = 0.0607
+# accuracies = [0.8,0.77,0.28,0.53,0.67,0.15,0.35,0.12,0.45,0.64] #variance = 0.0607
+# accuracies = [0.01,0.01,0.01,0.01,0.01,0.099,0.099,0.099,0.099,0.099] #variance = 0.0022
+accuracies = [0,0,0,0,0,0,0,0] #variance = 0.0022
 accuracies.sort(reverse=1)
 NUM_HUMANS = len(accuracies)
 

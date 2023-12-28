@@ -62,7 +62,7 @@ def get_acc(y_pred, y_true):
     print("Invalid Arguments")
 
 def main():
-    n_runs = 10
+    n_runs = 1
     test_sizes = [0.999, 0.99, 0.9, 0.0001]
     # test_sizes = [0.999]
 
