@@ -6,9 +6,9 @@ accuracies = [0.8,0.77,0.28,0.53,0.67,0.15,0.35,0.12,0.45,0.64] #variance = 0.06
 accuracies.sort(reverse=1)
 NUM_HUMANS = len(accuracies)
 
-
+import numpy
 import os
-import deepdish
+# import deepdish
 import time
 import warnings
 import csv
@@ -42,9 +42,9 @@ from   sklearn.model_selection import GridSearchCV, StratifiedKFold
 from   sklearn.linear_model import LogisticRegression
 from   sklearn.model_selection import train_test_split
 
-import pyro
-import pyro.distributions as dist
-from   pyro.infer import MCMC, NUTS
+# import pyro
+# import pyro.distributions as dist
+# from   pyro.infer import MCMC, NUTS
 
 import calibration as cal
 import contextlib

@@ -151,7 +151,7 @@ def main():
                     # pomc policy
                     elif(policy_name == 'pomc'):
                         humans = pomc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open('./subset/subset_pomc_pf.csv', 'w', newline='') as f:
+                        with open('./subset/subset_pomc_f.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
