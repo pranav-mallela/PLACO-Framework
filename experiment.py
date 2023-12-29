@@ -10,19 +10,34 @@ from subset_eamc import eamc
 # # added for analysis
 # from correlation_with_posterior import *
 
-def load_CIFAR10H(model_name):
-    """ Loads the CIFAR-10H predictions (human and model) and true labels.
+def load_data(model_name):
+    """ Loads the predictions (human and model) and true labels.
+        Datasets: cnn_data (CIFAR-10H), resnet152_imagenet_data_counts (IMAGENET-16H)
     """
     dirname = PROJECT_ROOT
 
     data_path = os.path.join(dirname, f'dataset/{model_name}.csv')
     data = np.genfromtxt(data_path, delimiter=',')
 
-    true_labels = data[:, 0]
-    human_counts = data[:, 1:11]
-    model_probs = data[:, 11:]
+    if(model_name == 'cnn_data'):
+        true_labels = data[:, 0]
+        human_counts = data[:, 1:11]
+        model_probs = data[:, 11:]
 
-    true_labels = true_labels.astype(int)
+        true_labels = true_labels.astype(int)
+
+    
+    elif(model_name == 'resnet152_imagenet_data_counts'):
+        true_labels = data[:, 164]
+        human_counts = data[:, 165:181]
+        model_probs = data[:, 148:164]
+
+        true_labels = true_labels.astype(int)
+    
+    elif(model_name == 'lstm_hate_speech_data_clean'):
+        true_labels = data[:, 5]
+        human_counts = data[:, 2:5]
+        model_probs = data[:, 7:]
 
     return human_counts, model_probs, true_labels
 
@@ -68,7 +83,7 @@ def main():
 
     out_fpath = './output/'
     os.makedirs(out_fpath, exist_ok=True)
-    model_names = ['cnn_data']
+    model_names = ['lstm_hate_speech_data_clean']
 
     for test_size in test_sizes:
 
@@ -77,7 +92,9 @@ def main():
             output_file_acc = out_fpath + f'{model_name}_accuracy_{str(accuracies)}_{int((1-test_size)*10000)}'
 
             # Load data
-            human_counts, model_probs, y_true = load_CIFAR10H(model_name)
+            human_counts, model_probs, y_true = load_data(model_name)
+            human_counts = human_counts.astype(int)
+            y_true = y_true.astype(int)
 
             # Generate human output from human counts through simulation
             y_h = simulate_humans(human_counts, y_true, accuracy_list=accuracies)
@@ -111,6 +128,9 @@ def main():
                 acc_h = get_acc(y_h_te[:, 0], y_true_te) # considering the accuracy of the best human only
                 acc_m = get_acc(np.argmax(model_probs_te, axis=1), y_true_te)
 
+                print(np.argmax(model_probs_te, axis=1))
+                print(y_h_te[:, 0])
+                print(y_true_te)
                 
                 _acc_data = [acc_h, acc_m]
                 
@@ -151,14 +171,14 @@ def main():
                     # pomc policy
                     elif(policy_name == 'pomc'):
                         humans = pomc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open('./subset/subset_pomc_pf.csv', 'w', newline='') as f:
+                        with open('./subset/subset_pomc_pf_hs.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
                     # eamc policy
                     elif(policy_name == 'eamc'):
                         humans = eamc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open('./subset/subset_eamc_pf.csv', 'w', newline='') as f:
+                        with open('./subset/subset_eamc_pf_hs_B5.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
                     
@@ -188,7 +208,7 @@ def main():
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}_eamc_pf.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}_{i}_eamc_pf_hatespeech.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)

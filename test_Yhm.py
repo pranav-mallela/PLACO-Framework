@@ -1,6 +1,7 @@
 import numpy as np
 
 def test_Yhm(human_conf_list, model_prob_vector):
+    K = len(human_conf_list[0])
     cnt = 0
     y_m = np.argmax(model_prob_vector)
     p_y_m = model_prob_vector[y_m]
@@ -10,9 +11,9 @@ def test_Yhm(human_conf_list, model_prob_vector):
     # prior = lambda x: 1/10
     for human_conf in human_conf_list:
         p_term_list = []
-        for y_h in range(10):
+        for y_h in range(K):
             p_term = 0
-            for y in range(10):
+            for y in range(K):
                 # p_term += ((human_conf[y_h][y] * prior(y) * model_conf[y_m][y])/p_y_m)
                 p_term += (human_conf[y_h][y] * model_prob_vector[y])
             p_term_list.append(p_term)

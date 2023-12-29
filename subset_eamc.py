@@ -6,7 +6,7 @@ import numpy as np
 
 # EAMC algorithm for subset selection
 T = 50
-B = 10
+B = 5
 def eamc(n, hcm_list, mpv_list):
     humans = []
     for mpv in mpv_list:
@@ -72,7 +72,7 @@ def f(x, hcm_list, mpv):
         return p / (1 - p)
 
     subset = [i for i in range(len(x)) if x[i] == 1]
-    num_classes = 10
+    num_classes = len(hcm_list[0])
     _, est = test_Yhm(hcm_list, mpv)
 
     m = np.array([[func(hcm_list[i][est[i]][j]) for j in range(num_classes)] for i in subset])
