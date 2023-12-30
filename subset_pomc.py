@@ -71,10 +71,10 @@ def f(x, hcm_list, mpv):
 
     subset = [i for i in range(len(x)) if x[i] == 1]
     num_classes = 10
-    # _, est = test_Yhm(hcm_list, mpv)
+    _, est = test_Yhm(hcm_list, mpv)
     # est = np.random.randint(0,10,len(hcm_list))     #random estimation
     # est = maxmax(hcm_list)                        # max max estimation
-    est = topk(hcm_list,mpv)        # top3 estimation
+    # est = topk(hcm_list,mpv)        # top3 estimation
     m = np.array([[func(hcm_list[i][est[i]][j]) for j in range(num_classes)] for i in subset])
     m *= (m > 1)
     m += (m == 0) * 1

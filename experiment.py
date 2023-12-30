@@ -188,7 +188,7 @@ def main():
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}_pomc_f.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}_{i}_pomc_f_maxmax.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)
