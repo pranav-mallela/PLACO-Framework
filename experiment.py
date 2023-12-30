@@ -92,8 +92,8 @@ def main():
                 # ('pseudo_lb_best_policy_overloaded', pseudo_lb_best_policy_overloaded, False),
                 # ('knapsack_instance_wise_subsets', knapsack_instance_wise_subsets, False),
                 # ('knapsack_dynamicValue_using_alignment', knapsack_dynamicValue_using_alignment, False),
-                ('pomc', pomc, False),
-                # ('eamc', eamc, False),
+                # ('pomc', pomc, False),
+                ('eamc', eamc, False),
             ]
 
             acc_data = []
@@ -151,22 +151,31 @@ def main():
                     # pomc policy
                     elif(policy_name == 'pomc'):
                         humans = pomc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open('./subset/subset_pomc_f.csv', 'w', newline='') as f:
+                        with open(f'./subset/{accuracies}_{test_size}_subset_pomc.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
                     # eamc policy
                     elif(policy_name == 'eamc'):
                         humans = eamc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open('./subset/subset_eamc_pf.csv', 'w', newline='') as f:
+                        with open(f'./subset/{accuracies}_{test_size}_subset_eamc10.csv', 'w', newline='') as f:
+                            writer = csv.writer(f)
+                            writer.writerows(humans)
+
+                    elif(policy_name == 'lb_best_policy'):
+                        humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
+                        with open(f'./subset/{accuracies}_{test_size}_subset_lb_best_policy.csv', 'w', newline='') as f:
+                            writer = csv.writer(f)
+                            writer.writerows(humans)
+                    
+                    elif(policy_name == 'pseudo_lb_best_policy_overloaded'):
+                        humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
+                        with open(f'./subset/{accuracies}_{test_size}_subset_pseudolb.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
                     
                     else:
                         humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
-                        with open('./subset/subset_pseudolb.csv', 'w', newline='') as f:
-                            writer = csv.writer(f)
-                            writer.writerows(humans)
 
                     # # added for analysis
                     # above_threshold, below_threshold = split_instances(humans, bad_humans)
@@ -188,7 +197,7 @@ def main():
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}_pomc_f_maxmax.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}_{i}.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)
