@@ -4,6 +4,8 @@ import numpy as np
 import pandas as pd
 from dependencies import accuracies
 
+NUM_CLASSES = 16
+
 df = None
 
 df_preds = pd.DataFrame()
@@ -43,7 +45,7 @@ def update_data_policy(df, optimal, policy_name):
 def dump_policy(i):
     df.to_csv(f"./log/policy_{i}.csv")
 
-def lb_best_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
+def lb_best_policy(combiner, hx, tx, mx, num_humans, num_classes=NUM_CLASSES):
     def f(x):
         return x / (1 - x)
 
@@ -68,7 +70,7 @@ def lb_best_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
     
     return optimal
         
-def single_best_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
+def single_best_policy(combiner, hx, tx, mx, num_humans, num_classes=NUM_CLASSES):
     '''
     return best human only in all the cases
     '''
@@ -86,7 +88,7 @@ def single_best_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
     
     return optimal
 
-def mode_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
+def mode_policy(combiner, hx, tx, mx, num_humans, num_classes=NUM_CLASSES):
     '''
     return a single human which denotes the mode of the subset
     '''
@@ -106,7 +108,7 @@ def mode_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
 
     return mode
 
-def weighted_mode_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
+def weighted_mode_policy(combiner, hx, tx, mx, num_humans, num_classes=NUM_CLASSES):
     '''
     return a single human which denotes the weighted mode of the subset
     '''
@@ -127,10 +129,10 @@ def weighted_mode_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
 
     return mode
 
-def select_all_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
+def select_all_policy(combiner, hx, tx, mx, num_humans, num_classes=NUM_CLASSES):
     return np.array([[i for i in range(num_humans)] for _ in range(len(hx))])
 
-def random_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
+def random_policy(combiner, hx, tx, mx, num_humans, num_classes=NUM_CLASSES):
     '''
     return a random subset
     '''
@@ -152,7 +154,7 @@ def random_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
 
     return optimal
 
-def pseudo_lb_best_policy_overloaded(combiner, hx, tx, mx, num_humans, num_classes=10):
+def pseudo_lb_best_policy_overloaded(combiner, hx, tx, mx, num_humans, num_classes=NUM_CLASSES):
 
     def f(x):
         return x / (1 - x)

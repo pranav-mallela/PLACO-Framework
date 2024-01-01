@@ -12,7 +12,7 @@ from subset_eamc import eamc
 
 def load_data(model_name):
     """ Loads the predictions (human and model) and true labels.
-        Datasets: cnn_data (CIFAR-10H), resnet152_imagenet_data_counts (IMAGENET-16H)
+        Datasets: cnn_data (CIFAR-10H), resnet152_imagenet_data_counts (IMAGENET-16H), lstm_hate_speech_data_clean (Hate Speech and Offensive Language)
     """
     dirname = PROJECT_ROOT
 
@@ -78,18 +78,19 @@ def get_acc(y_pred, y_true):
 
 def main():
     n_runs = 1
-    # test_sizes = [0.999, 0.99, 0.9, 0.0001]
-    test_sizes = [0.999]
+    test_sizes = [0.999, 0.99, 0.9, 0.0001]
+    # test_sizes = [0.999]
 
-    out_fpath = './output/'
+    model_names = ['resnet152_imagenet_data_counts']
+    out_fpath = f'./output/{model_names[0]}/'
     os.makedirs(out_fpath, exist_ok=True)
-    model_names = ['lstm_hate_speech_data_clean']
 
     for test_size in test_sizes:
 
         for model_name in tqdm(model_names, desc='Models', leave=True):
             # Specify output files
-            output_file_acc = out_fpath + f'{model_name}_accuracy_{str(accuracies)}_{int((1-test_size)*10000)}'
+            output_file_acc = out_fpath + f'accuracy_{str(accuracies)}_{int((1-test_size)*10000)}'
+            print(output_file_acc)
 
             # Load data
             human_counts, model_probs, y_true = load_data(model_name)
@@ -100,11 +101,11 @@ def main():
             y_h = simulate_humans(human_counts, y_true, accuracy_list=accuracies)
 
             POLICIES = [
-                # ('single_best_policy', single_best_policy, False),
-                # ('mode_policy', mode_policy, False),
-                # ('weighted_mode_policy', weighted_mode_policy, False),
-                # ('select_all_policy', select_all_policy, False),
-                # ('random', random_policy, False),
+                ('single_best_policy', single_best_policy, False),
+                ('mode_policy', mode_policy, False),
+                ('weighted_mode_policy', weighted_mode_policy, False),
+                ('select_all_policy', select_all_policy, False),
+                ('random', random_policy, False),
                 ('lb_best_policy', lb_best_policy, True),
                 ('pseudo_lb_best_policy_overloaded', pseudo_lb_best_policy_overloaded, False),
                 # ('knapsack_instance_wise_subsets', knapsack_instance_wise_subsets, False),
@@ -128,9 +129,9 @@ def main():
                 acc_h = get_acc(y_h_te[:, 0], y_true_te) # considering the accuracy of the best human only
                 acc_m = get_acc(np.argmax(model_probs_te, axis=1), y_true_te)
 
-                print(np.argmax(model_probs_te, axis=1))
-                print(y_h_te[:, 0])
-                print(y_true_te)
+                # print(np.argmax(model_probs_te, axis=1))
+                # print(y_h_te[:, 0])
+                # print(y_true_te)
                 
                 _acc_data = [acc_h, acc_m]
                 
@@ -171,20 +172,20 @@ def main():
                     # pomc policy
                     elif(policy_name == 'pomc'):
                         humans = pomc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open('./subset/subset_pomc_pf_hs.csv', 'w', newline='') as f:
+                        with open(f'./subset/{accuracies}_{test_size}_subset_pomc.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
                     # eamc policy
                     elif(policy_name == 'eamc'):
                         humans = eamc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open('./subset/subset_eamc_pf_hs_B5.csv', 'w', newline='') as f:
+                        with open(f'./subset/{accuracies}_{test_size}_subset_eamc_B5.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
                     
                     else:
                         humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
-                        with open('./subset/subset_pseudolb.csv', 'w', newline='') as f:
+                        with open(f'./subset/{accuracies}_{test_size}_subset_pseudolb.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
@@ -208,7 +209,7 @@ def main():
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}_eamc_pf_hatespeech.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}_{i}_eamc_pf_B5.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)

@@ -1,0 +1,2 @@
+human,model,single_best_policy,mode_policy,weighted_mode_policy,select_all_policy,random,lb_best_policy,pseudo_lb_best_policy_overloaded,pomc,eamc
+0.943125,0.434375,0.94875,0.99,0.9908333333333333,0.07604166666666666,0.7154166666666667,1.0,0.988125,0.8539583333333334,0.9404166666666667
