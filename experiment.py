@@ -158,7 +158,7 @@ def main():
                     # eamc policy
                     elif(policy_name == 'eamc'):
                         humans = eamc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open(f'./subset/{accuracies}_{test_size}_subset_eamc15.csv', 'w', newline='') as f:
+                        with open(f'./subset/{accuracies}_{test_size}_subset_eamc10.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
