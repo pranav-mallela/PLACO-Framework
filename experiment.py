@@ -68,7 +68,7 @@ def main():
 
     out_fpath = './output/'
     os.makedirs(out_fpath, exist_ok=True)
-    model_names = ['cnn_data_1']
+    model_names = ['cnn_data']
 
     for test_size in test_sizes:
 
