@@ -73,10 +73,10 @@ def f(x, hcm_list, mpv):
 
     subset = [i for i in range(len(x)) if x[i] == 1]
     num_classes = 10
-    # _, est = test_Yhm(hcm_list, mpv)
+    _, est = test_Yhm(hcm_list, mpv)
     # est = np.random.randint(0,10,len(hcm_list))     #random estimation
     # est = maxmax(hcm_list)                        # max max estimation
-    est = topk(hcm_list,mpv)        # top3 estimation
+    # est = topk(hcm_list,mpv)        # top3 estimation
     m = np.array([[func(hcm_list[i][est[i]][j]) for j in range(num_classes)] for i in subset])
     m *= (m > 1)
     m += (m == 0) * 1
@@ -88,6 +88,34 @@ def f(x, hcm_list, mpv):
 # constant cost = 1
 def c(x):
     return sum(x)
+
+def c(x,hcm_list):
+    cost = 0
+    for human in x:
+        hcm = hcm_list[human]
+        classWiseAcc = [hcm[i][i] for i, _ in enumerate(hcm)]
+        human_cost = np.sum(classWiseAcc)
+        cost+=human_cost
+    return cost
+
+def c(x,mpv,hcm_list):
+    cost = 0
+    for human in x:
+        hcm = hcm_list[human]
+        classWiseAcc = [hcm[i][i] for i, _ in enumerate(hcm)]
+        human_cost = np.dot(classWiseAcc, mpv)
+        cost+=human_cost
+    return cost
+
+def c(x,mpv,hcm_list):
+    cost = 0
+    for human in x:
+        hcm = hcm_list[human]
+        classWiseAcc = [hcm[i][i] for i, _ in enumerate(hcm)]
+        weight = [sum(hcm[y][yh] * mpv[y] for y in range(len(mpv))) for yh in range(len(mpv))]
+        human_cost = np.dot(classWiseAcc,weight)
+        cost+=human_cost
+    return cost
 
 def maxmax(hcm_list):
     estimated_labels = []
