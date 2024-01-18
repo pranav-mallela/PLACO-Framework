@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from dependencies import accuracies
 
-NUM_CLASSES = 16
+NUM_CLASSES = 3
 
 df = None
 

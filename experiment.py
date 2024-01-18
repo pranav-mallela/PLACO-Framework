@@ -78,10 +78,10 @@ def get_acc(y_pred, y_true):
 
 def main():
     n_runs = 1
-    test_sizes = [0.999, 0.99, 0.9, 0.0001]
+    test_sizes = [0.999, 0.99, 0.9, 0.0001] 
     # test_sizes = [0.999]
 
-    model_names = ['resnet152_imagenet_data_counts']
+    model_names = ['lstm_hate_speech_data_clean']
     out_fpath = f'./output/{model_names[0]}/'
     os.makedirs(out_fpath, exist_ok=True)
 
@@ -172,20 +172,20 @@ def main():
                     # pomc policy
                     elif(policy_name == 'pomc'):
                         humans = pomc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open(f'./subset/{accuracies}_{test_size}_subset_pomc.csv', 'w', newline='') as f:
+                        with open(f'./subset/hate_speech/{accuracies}_{test_size}_subset_pomc.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
                     # eamc policy
                     elif(policy_name == 'eamc'):
                         humans = eamc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        with open(f'./subset/{accuracies}_{test_size}_subset_eamc_B5.csv', 'w', newline='') as f:
+                        with open(f'./subset/hate_speech/{accuracies}_{test_size}_subset_eamc_B5.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
                     
                     else:
                         humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
-                        with open(f'./subset/{accuracies}_{test_size}_subset_pseudolb.csv', 'w', newline='') as f:
+                        with open(f'./subset/hate_speech/{accuracies}_{test_size}_subset_pseudolb.csv', 'w', newline='') as f:
                             writer = csv.writer(f)
                             writer.writerows(humans)
 
