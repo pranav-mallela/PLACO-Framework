@@ -2,8 +2,9 @@ from test_Yhm import test_Yhm
 import numpy as np
 
 def value(x, hcm_list, mpv):
-    def func(p):
-        return p / (1 - p)
+    def func(p,phi):
+        epsilon = np.max(np.diag(phi))
+        return (p + epsilon) / (2 - (p + epsilon))
 
     subset = [i for i in range(len(x)) if x[i] == 1]
     num_classes = 10
@@ -11,7 +12,7 @@ def value(x, hcm_list, mpv):
     # est = np.random.randint(0,10,len(hcm_list))     #random estimation
     # est = maxmax(hcm_list)                        # max max estimation
     # est = topk(hcm_list,mpv)        # top3 estimation
-    m = np.array([[func(hcm_list[i][est[i]][j]) for j in range(num_classes)] for i in subset])
+    m = np.array([[func(hcm_list[i][est[i]][j],hcm_list[i]) for j in range(num_classes)] for i in subset])
     m *= (m > 1)
     m += (m == 0) * 1
 

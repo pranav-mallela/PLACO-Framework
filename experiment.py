@@ -59,7 +59,7 @@ def main():
     n_runs = 5
     test_sizes = [0.999, 0.99, 0.9, 0.0001]
 
-    cost_function = 'quater'
+    cost_function = 'random'
     out_fpath = f'./output/{cost_function}/'
     os.makedirs(out_fpath, exist_ok=True)
     model_names = ['cnn_data']
@@ -80,10 +80,10 @@ def main():
                 # ('single_best_policy', single_best_policy, False),
                 # ('mode_policy', mode_policy, False),
                 # ('weighted_mode_policy', weighted_mode_policy, False),
-                ('select_all_policy', select_all_policy, False),
-                ('random', random_policy, False),
+                # ('select_all_policy', select_all_policy, False),
+                # ('random', random_policy, False),
                 # ('lb_best_policy', lb_best_policy, True),
-                ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
+                # ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
                 ('pomc', pomc, False),
                 ('eamc', eamc, False),
             ]
@@ -139,4 +139,4 @@ def main():
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)
 
-# main()
+main()
