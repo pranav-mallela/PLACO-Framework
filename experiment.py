@@ -2,13 +2,7 @@ from dependencies import *
 from combiner import *
 import random
 from test_Yhm import *
-from knapsack_with_overall_budget import *
 from sklearn import metrics
-from knapsack_dynamicValue_using_alignment import *
-from subset_pomc import pomc
-from subset_eamc import eamc
-# # added for analysis
-# from correlation_with_posterior import *
 
 def load_CIFAR10H(model_name):
     """ Loads the CIFAR-10H predictions (human and model) and true labels.
@@ -62,11 +56,11 @@ def get_acc(y_pred, y_true):
     print("Invalid Arguments")
 
 def main():
-    n_runs = 1
+    n_runs = 5
     test_sizes = [0.999, 0.99, 0.9, 0.0001]
-    # test_sizes = [0.999]
 
-    out_fpath = './output/'
+    cost_function = 'quater'
+    out_fpath = f'./output/{cost_function}/'
     os.makedirs(out_fpath, exist_ok=True)
     model_names = ['cnn_data']
 
@@ -86,13 +80,11 @@ def main():
                 # ('single_best_policy', single_best_policy, False),
                 # ('mode_policy', mode_policy, False),
                 # ('weighted_mode_policy', weighted_mode_policy, False),
-                # ('select_all_policy', select_all_policy, False),
-                # ('random', random_policy, False),
+                ('select_all_policy', select_all_policy, False),
+                ('random', random_policy, False),
                 # ('lb_best_policy', lb_best_policy, True),
-                # ('pseudo_lb_best_policy_overloaded', pseudo_lb_best_policy_overloaded, False),
-                # ('knapsack_instance_wise_subsets', knapsack_instance_wise_subsets, False),
-                # ('knapsack_dynamicValue_using_alignment', knapsack_dynamicValue_using_alignment, False),
-                # ('pomc', pomc, False),
+                ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
+                ('pomc', pomc, False),
                 ('eamc', eamc, False),
             ]
 
@@ -122,84 +114,29 @@ def main():
 
                 confusion_matrix_model = metrics.confusion_matrix(y_true_te, np.argmax(model_probs_te, axis=1))
 
-                # true_cnt = 0
-                # for image in range(len(y_true_te)):
-                #     cnt, _ = test_Yhm(len(accuracies), combiner.confusion_matrix, confusion_matrix_model, model_probs_te[image])
-                #     true_cnt += cnt
-
-                # print("True: ", true_cnt)
-                # print("False: ", 50000 - true_cnt)
-
                 for policy_name, policy, use_true_labels in POLICIES:
 
                     # generate estimated human labels
                     # y_h_te, bad_humans = test_Yhm_estimate_human_labels(len(accuracies), combiner.confusion_matrix, confusion_matrix_model, model_probs_te, accuracies)
+                    humans,cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, model_probs_te.shape[1])
+                    with open(f'./subset/{cost_function}/{accuracies}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerows(humans)
+                    with open(f'./subset_cost/{cost_function}/{accuracies}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerows(cost)
 
-                    # knapsack policy
-                    if(policy_name == 'knapsack_instance_wise_subsets'):
-                        humans = knapsack_instance_wise_subsets(accuracies, model_probs_te, sum(accuracies)*0.75*10000)
-                        with open('./subset/subset_knapsack.csv', 'w', newline='') as f:
-                            writer = csv.writer(f)
-                            writer.writerows(humans)
-                            
-                    elif(policy_name == 'knapsack_dynamicValue_using_alignment'):
-                        humans = knapsack_dynamicValue_using_alignment(accuracies, model_probs_te, sum(accuracies)*0.75*10000, combiner.confusion_matrix)
-                        with open('./subset/subset_knapsack_dynamicValue.csv', 'w', newline='') as f:
-                            writer = csv.writer(f)
-                            writer.writerows(humans)
-
-                    # pomc policy
-                    elif(policy_name == 'pomc'):
-                        humans = pomc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        # with open(f'./subset/{accuracies}_{test_size}_subset_pomc.csv', 'w', newline='') as f:
-                        #     writer = csv.writer(f)
-                        #     writer.writerows(humans)
-
-                    # eamc policy
-                    elif(policy_name == 'eamc'):
-                        humans = eamc(len(accuracies), combiner.confusion_matrix, model_probs_te)
-                        # with open(f'./subset/{accuracies}_{test_size}_subset_eamc10.csv', 'w', newline='') as f:
-                        #     writer = csv.writer(f)
-                        #     writer.writerows(humans)
-
-                    elif(policy_name == 'lb_best_policy'):
-                        humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
-                        # with open(f'./subset/{accuracies}_{test_size}_subset_lb_best_policy.csv', 'w', newline='') as f:
-                        #     writer = csv.writer(f)
-                        #     writer.writerows(humans)
-                    
-                    elif(policy_name == 'pseudo_lb_best_policy_overloaded'):
-                        humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
-                        # with open(f'./subset/{accuracies}_{test_size}_subset_pseudolb.csv', 'w', newline='') as f:
-                        #     writer = csv.writer(f)
-                        #     writer.writerows(humans)
-                    
-                    else:
-                        humans = policy(combiner, y_h_te, y_true_te if use_true_labels else None, np.argmax(model_probs_te, axis=1), NUM_HUMANS, model_probs_te.shape[1])
-
-                    # # added for analysis
-                    # above_threshold, below_threshold = split_instances(humans, bad_humans)
-
-                    # enhance estimated human labels
-                    # y_h_te = enhance_estimated_human_labels(humans, y_h_te, y_h)
-                    
                     y_comb_te = combiner.combine(model_probs_te, y_h_te, humans)
 
-                    # # added for analysis
-                    # print(f'{output_file_acc}_{i}_yhm.csv')
-                    # get_split_acc(above_threshold, below_threshold, y_true_te, y_comb_te)
-
                     acc_comb = get_acc(y_comb_te, y_true_te)
-                    # # added for analysis
-                    # print("combined:", acc_comb)
                     _acc_data.append(acc_comb)
 
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}_topk.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}_{i}.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)
 
-main()
+# main()

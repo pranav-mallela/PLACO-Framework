@@ -1,8 +1,11 @@
 from itertools import combinations
-from random import random
+import random
 import numpy as np
 import pandas as pd
 from dependencies import accuracies
+from valuator import value
+from cost import c5 as cost
+import math
 
 df = None
 
@@ -128,7 +131,7 @@ def weighted_mode_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
     return mode
 
 def select_all_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
-    return np.array([[i for i in range(num_humans)] for _ in range(len(hx))])
+    return np.array([[i for i in range(num_humans)] for _ in range(len(hx))]), [[num_humans]]
 
 def random_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
     '''
@@ -136,6 +139,7 @@ def random_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
     '''
 
     random = []
+    cost_of_subset = []
     policy_name = "random_policy"
 
     humans = list(range(num_humans))
@@ -145,12 +149,13 @@ def random_policy(combiner, hx, tx, mx, num_humans, num_classes=10):
         for i in humans:
             if (np.random.random() < 0.5):
                 random_selection.append(i)
-
+        
+        cost_of_subset.append([(cost(random_selection,mx,combiner.confusion_matrix))])
         random.append(random_selection)
 
     optimal = np.array(random, dtype=object)
 
-    return optimal
+    return optimal,cost_of_subset
 
 def pseudo_lb_best_policy_overloaded(combiner, hx, tx, mx, num_humans, num_classes=10):
 
@@ -160,18 +165,91 @@ def pseudo_lb_best_policy_overloaded(combiner, hx, tx, mx, num_humans, num_class
     policy_name = "pseudo_lb_best_policy_overloaded"
 
     optimal = []
+    cost_of_subset = []
 
-    # print(hx)
     for p in hx:
-        # print(p)
         m = np.array([[f(combiner.confusion_matrix[i][p[i]][j]) for j in range(num_classes)] for i in range(num_humans)])
         m *= (m > 1)
         m += (m == 0) * 1
 
         y_opt = np.argmax(np.prod(m, axis=0))
 
-        optimal.append([i for i, x in enumerate(m[:, y_opt]) if x != 1])
+        subset = [i for i, x in enumerate(m[:, y_opt]) if x != 1]
+        cost_of_subset.append([(cost(subset,mx,combiner.confusion_matrix))])
+        optimal.append(subset)
     
     optimal = np.array(optimal, dtype=object)
     
-    return optimal
+    return optimal,cost_of_subset
+
+def eamc(combiner, hx, tx, mx, num_humans, num_classes=10):
+    def g(x, hcm_list, mpv, B):
+        if sum(x) == 0:
+            return value(x, hcm_list, mpv)
+        return value(x, hcm_list, mpv)/(1 - math.exp(-cost([i for i in range(len(x)) if x[i] == 1],mpv,hcm_list)/B))
+    
+    hcm_list = combiner.confusion_matrix
+    mpv_list = mx
+    B = num_humans*len(mpv_list[0])*0.375
+    humans = []
+    cost_of_subset = []
+    for mpv in mpv_list:
+        u, v, bin = {}, {}, {}
+        u[0] = v[0] = [0]*num_humans
+        bin[0] = [u[0], v[0]]
+        P = [[0]*num_humans]
+        for _ in range(50):
+            x = random.choice(P)
+            x1 = [random.choices([b, b^1], weights=((num_humans-1), 1), k=1)[0] for b in x]
+            sz = sum(x1)
+            if cost([i for i in range(len(x)) if x1[i] == 1],mpv,hcm_list) <= B:
+                if sz not in bin:
+                    u[sz] = v[sz] = x1
+                    bin[sz] = [u[sz], v[sz]]
+                    P.append(x1)
+                else:
+                    if g(x1, hcm_list, mpv, B) >= g(u[sz], hcm_list, mpv, B):
+                        u[sz] = x1
+                    if value(x1, hcm_list, mpv) >= value(v[sz], hcm_list, mpv):
+                        v[sz] = x1
+                    P.remove(bin[sz][0])
+                    P.remove(bin[sz][1]) if bin[sz][1] != bin[sz][0] else None
+                    P.append(u[sz]); P.append(v[sz])
+                    bin[sz][0] = u[sz]
+                    bin[sz][1] = v[sz]
+            
+        x = max(P, key=lambda x: value(x, hcm_list, mpv))
+        subset = [i for i in range(len(x)) if x[i] == 1]
+        cost_of_subset.append([cost(subset,mx,combiner.confusion_matrix)])
+        humans.append(subset)
+        print(len(humans)) if len(humans)%1000 == 0 else None
+
+    return humans,cost_of_subset
+
+def pomc(combiner, hx, tx, mx, num_humans, num_classes=10):
+    hcm_list = combiner.confusion_matrix
+    mpv_list = mx
+    humans = []
+    cost_of_subset = []
+    for mpv in mpv_list:
+        P = [[0]*num_humans]
+        for _ in range(25):
+            x = random.choice(P)
+            x1 = [random.choices([b, b^1], weights=((num_humans-1), 1), k=1)[0] for b in x]
+            check = False
+            f_x1 = value(x1, hcm_list, mpv)
+            for z in P:
+                f_z = value(z, hcm_list, mpv)
+                if (f_x1 > f_z) or (f_x1 >= f_z and cost([i for i in range(len(x)) if x1[i] == 1],mpv,hcm_list) < cost([i for i in range(len(x)) if z[i] == 1],mpv,hcm_list)):
+                    check = True
+                    break
+            if check:
+                for z in P:
+                    if f_x1 >= f_z and cost([i for i in range(len(x)) if x1[i] == 1],mpv,hcm_list) <= cost([i for i in range(len(x)) if z[i] == 1],mpv,hcm_list):
+                        P.remove(z)
+                P.append(x1)
+        x = max(P, key=lambda x: (value(x, hcm_list, mpv), -cost([i for i in range(len(x)) if x[i] == 1],mpv,hcm_list)))
+        subset = [i for i in range(len(x)) if x[i] == 1]
+        cost_of_subset.append([cost(subset,mx,combiner.confusion_matrix)])
+        humans.append(subset)
+    return humans,cost_of_subset

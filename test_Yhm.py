@@ -3,7 +3,6 @@ import numpy as np
 def test_Yhm(human_conf_list, model_prob_vector):
     cnt = 0
     y_m = np.argmax(model_prob_vector)
-    p_y_m = model_prob_vector[y_m]
     y_h_star = []
     # added for analysis
     p_term_star = []
@@ -50,3 +49,20 @@ def enhance_estimated_human_labels(human_subset_list, estimated_labels, true_hum
             enhanced_estimated_labels[image][human] = true_human_labels[image][human]
     
     return np.array(enhanced_estimated_labels)
+
+# def maxmax(hcm_list):
+#     estimated_labels = []
+#     for i in range(len(hcm_list)):
+#         hcm = hcm_list[i]
+#         est_label = np.argmax([np.max(hcm[i]) for i in range(len(hcm))])
+#         estimated_labels.append(est_label)
+#     return estimated_labels
+
+# def topk(hcm_list,mpv):
+#     top3 = np.argsort(mpv)[-3:]  
+#     estimated_labels = []
+#     for i in range(len(hcm_list)):
+#         pseudo_label = np.random.choice(top3)  
+#         hcm = hcm_list[i]
+#         estimated_labels.append(np.argmax(hcm[pseudo_label]))
+#     return estimated_labels

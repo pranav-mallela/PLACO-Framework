@@ -17,7 +17,7 @@ def unpickle(file):
 
 model = None
 
-baseline = True
+baseline = False
 if (not baseline):
     model = Sequential()
     model.add(Conv2D(32, (3, 3), activation='relu', kernel_initializer='he_uniform', padding='same', input_shape=(32, 32, 3)))
