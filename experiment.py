@@ -83,7 +83,7 @@ def main():
                 # ('select_all_policy', select_all_policy, False),
                 # ('random', random_policy, False),
                 # ('lb_best_policy', lb_best_policy, True),
-                # ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
+                ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
                 ('pomc', pomc, False),
                 ('eamc', eamc, False),
             ]
