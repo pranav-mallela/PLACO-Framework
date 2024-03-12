@@ -58,8 +58,9 @@ def get_acc(y_pred, y_true):
 def main():
     n_runs = 5
     test_sizes = [0.999, 0.99, 0.9, 0.0001]
+    # test_sizes = [0.95, 0.9, 0.5, 0.0001]
 
-    cost_function = 'random'
+    cost_function = 'random_old'
     out_fpath = f'./output/{cost_function}/'
     os.makedirs(out_fpath, exist_ok=True)
     model_names = ['cnn_data']
@@ -68,7 +69,7 @@ def main():
 
         for model_name in tqdm(model_names, desc='Models', leave=True):
             # Specify output files
-            output_file_acc = out_fpath + f'{model_name}_accuracy_{str(accuracies)}_{int((1-test_size)*10000)}'
+            output_file_acc = out_fpath + f'true_{model_name}_accuracy_{str(accuracies)}_{int((1-test_size)*10000)}'
 
             # Load data
             human_counts, model_probs, y_true = load_CIFAR10H(model_name)
@@ -83,9 +84,11 @@ def main():
                 # ('select_all_policy', select_all_policy, False),
                 # ('random', random_policy, False),
                 # ('lb_best_policy', lb_best_policy, True),
-                ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
-                ('pomc', pomc, False),
-                ('eamc', eamc, False),
+                # ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
+                # ('pomc', pomc, False),
+                # ('eamc', eamc, False),
+                # ('linear_program', linear_program, False),
+                ('check_all', check_all, False),
             ]
 
             acc_data = []
@@ -112,7 +115,7 @@ def main():
 
                 combiner.fit(model_probs_tr, y_h_tr, y_true_tr)
 
-                confusion_matrix_model = metrics.confusion_matrix(y_true_te, np.argmax(model_probs_te, axis=1))
+                # confusion_matrix_model = metrics.confusion_matrix(y_true_te, np.argmax(model_probs_te, axis=1))
 
                 for policy_name, policy, use_true_labels in POLICIES:
 
@@ -134,7 +137,7 @@ def main():
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}_{i}_check_all.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)

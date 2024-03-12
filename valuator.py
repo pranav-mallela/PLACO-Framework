@@ -6,6 +6,10 @@ def value(x, hcm_list, mpv):
         epsilon = np.max(np.diag(phi))
         return (p + epsilon) / (2 - (p + epsilon))
 
+    def old_func(p,phi):
+        epsilon = np.max(np.diag(phi))
+        return p / (1-p)
+    
     subset = [i for i in range(len(x)) if x[i] == 1]
     num_classes = 10
     _, est = test_Yhm(hcm_list, mpv)
