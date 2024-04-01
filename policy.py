@@ -222,7 +222,7 @@ def eamc(combiner, hx, tx, mx, num_humans, num_classes=10):
             
         x = max(P, key=lambda x: value(x, hcm_list, mpv))
         subset = [i for i in range(len(x)) if x[i] == 1]
-        cost_of_subset.append([cost(subset,mx,combiner.confusion_matrix)])
+        cost_of_subset.append([cost(subset,mpv,combiner.confusion_matrix)])
         humans.append(subset)
         print(len(humans)) if len(humans)%1000 == 0 else None
 
@@ -252,7 +252,7 @@ def pomc(combiner, hx, tx, mx, num_humans, num_classes=10):
                 P.append(x1)
         x = max(P, key=lambda x: (value(x, hcm_list, mpv), -cost([i for i in range(len(x)) if x[i] == 1],mpv,hcm_list)))
         subset = [i for i in range(len(x)) if x[i] == 1]
-        cost_of_subset.append([cost(subset,mx,combiner.confusion_matrix)])
+        cost_of_subset.append([cost(subset,mpv,combiner.confusion_matrix)])
         humans.append(subset)
     return humans,cost_of_subset
 
@@ -269,12 +269,12 @@ def linear_program(combiner, hx, tx, mx, num_humans, num_classes=10):
         epsilon = np.max(np.diag(phi))
         p = phi[hi_list[h]][j_star]
         # print(p)
-        return p/(1-p)
-        # return (p + epsilon) / (2 - (p + epsilon))
+        # return p/(1-p)
+        return (p + epsilon) / (2 - (p + epsilon))
     
     def f(x,a):
-        return x/(1-x)
-        # return (x+a)/(2-(x+a))
+        # return x/(1-x)
+        return (x+a)/(2-(x+a))
     
     for mpv in mpv_list:
         # print("\n\nFor a given instance: ")
@@ -335,12 +335,12 @@ def check_all(combiner, hx, tx, mx, num_humans, num_classes=10):
         phi = hcm_list[h]
         epsilon = np.max(np.diag(phi))
         p = phi[hi_list[h]][j_star]
-        return p/(1-p)
-        # return (p + epsilon) / (2 - (p + epsilon))
+        # return p/(1-p)
+        return (p + epsilon) / (2 - (p + epsilon))
     
     def f(x,a):
-        return x/(1-x)
-        # return (x+a)/(2-(x+a))
+        # return x/(1-x)
+        return (x+a)/(2-(x+a))
     
     for m in range(len(mpv_list)):
         # _, est = test_Yhm(hcm_list, mpv)
