@@ -269,12 +269,12 @@ def linear_program(combiner, hx, tx, mx, num_humans, num_classes=10):
         epsilon = np.max(np.diag(phi))
         p = phi[hi_list[h]][j_star]
         # print(p)
-        return p/(1-p)
-        # return (p + epsilon) / (2 - (p + epsilon))
+        # return p/(1-p)
+        return (p + epsilon) / (2 - (p + epsilon))
     
     def f(x,a):
-        return x/(1-x)
-        # return (x+a)/(2-(x+a))
+        # return x/(1-x)
+        return (x+a)/(2-(x+a))
     
     for mpv in mpv_list:
         # print("\n\nFor a given instance: ")
@@ -335,12 +335,12 @@ def check_all(combiner, hx, tx, mx, num_humans, num_classes=10):
         phi = hcm_list[h]
         epsilon = np.max(np.diag(phi))
         p = phi[hi_list[h]][j_star]
-        return p/(1-p)
-        # return (p + epsilon) / (2 - (p + epsilon))
+        # return p/(1-p)
+        return (p + epsilon) / (2 - (p + epsilon))
     
     def f(x,a):
-        return x/(1-x)
-        # return (x+a)/(2-(x+a))
+        # return x/(1-x)
+        return (x+a)/(2-(x+a))
     
     for m in range(len(mpv_list)):
         # _, est = test_Yhm(hcm_list, mpv)

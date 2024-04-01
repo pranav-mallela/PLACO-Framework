@@ -4,13 +4,13 @@ import random
 from test_Yhm import *
 from sklearn import metrics
 
-def load_data(model_name):
+def load_data(model_name, dataset):
     """ Loads the predictions (human and model) and true labels.
         Datasets: cnn_data (CIFAR-10H), resnet152_imagenet_data_counts (IMAGENET-16H), lstm_hate_speech_data_clean (Hate Speech and Offensive Language)
     """
     dirname = PROJECT_ROOT
 
-    data_path = os.path.join(dirname, f'dataset/{model_name}.csv')
+    data_path = os.path.join(dirname, f'dataset/{dataset}/{model_name}.csv')
     data = np.genfromtxt(data_path, delimiter=',')
 
     if(model_name == 'cnn_data'):
@@ -21,7 +21,7 @@ def load_data(model_name):
         true_labels = true_labels.astype(int)
 
     
-    elif(model_name == 'resnet152_imagenet_data_counts'):
+    elif(model_name == 'imagenet_data'):
         true_labels = data[:, 164]
         human_counts = data[:, 165:181]
         model_probs = data[:, 148:164]
@@ -71,24 +71,24 @@ def get_acc(y_pred, y_true):
     print("Invalid Arguments")
 
 def main():
-    n_runs = 5
+    n_runs = 10
     # test_sizes = [0.999, 0.99, 0.9, 0.0001]
     test_sizes = [0.95, 0.9, 0.5, 0.0001] # use this test_sizes for experiments
 
     # cost_function = 'random'
-    dataset = 'cifar10h'
+    dataset = 'imagenet'
     out_fpath = f'./output/{dataset}/'
     os.makedirs(out_fpath, exist_ok=True)
-    model_names = ['cnn_data']
+    model_names = ['imagenet_data']
 
     for test_size in test_sizes:
 
         for model_name in tqdm(model_names, desc='Models', leave=True):
             # Specify output files
-            output_file_acc = out_fpath + f'{model_name}_accuracy_{str(len(accuracies))}_{int((1-test_size)*10000)}'
+            output_file_acc = out_fpath + f'{str(len(accuracies))}_{model_name}_accuracy_{int((1-test_size)*10000)}'
 
             # Load data
-            human_counts, model_probs, y_true = load_data(model_name)
+            human_counts, model_probs, y_true = load_data(model_name, dataset)
 
             # Generate human output from human counts through simulation
             y_h = simulate_humans(human_counts, y_true, accuracy_list=accuracies)
@@ -138,10 +138,10 @@ def main():
                     # generate estimated human labels
                     # y_h_te, bad_humans = test_Yhm_estimate_human_labels(len(accuracies), combiner.confusion_matrix, confusion_matrix_model, model_probs_te, accuracies)
                     humans,cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, model_probs_te.shape[1])
-                    with open(f'./subset/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
+                    with open(f'./output/{dataset}/subset/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerows(humans)
-                    with open(f'./subset_cost/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
+                    with open(f'./output/{dataset}/subset_cost/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerows(cost)
 
@@ -153,7 +153,7 @@ def main():
                 acc_data += [_acc_data]
 
             header_acc = ['human', 'model'] + [policy_name for policy_name, _, _ in POLICIES]
-            with open(f'{output_file_acc}_{i}.csv', 'w', newline='') as f:
+            with open(f'{output_file_acc}.csv', 'w', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header_acc)
                 writer.writerows(acc_data)
