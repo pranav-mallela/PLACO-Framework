@@ -222,7 +222,7 @@ def eamc(combiner, hx, tx, mx, num_humans, num_classes=10):
             
         x = max(P, key=lambda x: value(x, hcm_list, mpv))
         subset = [i for i in range(len(x)) if x[i] == 1]
-        cost_of_subset.append([cost(subset,mx,combiner.confusion_matrix)])
+        cost_of_subset.append([cost(subset,mpv,combiner.confusion_matrix)])
         humans.append(subset)
         print(len(humans)) if len(humans)%1000 == 0 else None
 
@@ -252,7 +252,7 @@ def pomc(combiner, hx, tx, mx, num_humans, num_classes=10):
                 P.append(x1)
         x = max(P, key=lambda x: (value(x, hcm_list, mpv), -cost([i for i in range(len(x)) if x[i] == 1],mpv,hcm_list)))
         subset = [i for i in range(len(x)) if x[i] == 1]
-        cost_of_subset.append([cost(subset,mx,combiner.confusion_matrix)])
+        cost_of_subset.append([cost(subset,mpv,combiner.confusion_matrix)])
         humans.append(subset)
     return humans,cost_of_subset
 
