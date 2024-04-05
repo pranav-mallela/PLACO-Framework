@@ -138,10 +138,10 @@ def main():
                     # generate estimated human labels
                     # y_h_te, bad_humans = test_Yhm_estimate_human_labels(len(accuracies), combiner.confusion_matrix, confusion_matrix_model, model_probs_te, accuracies)
                     humans,cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, model_probs_te.shape[1])
-                    with open(f'./output/{dataset}/subset/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
+                    with open(f'./output/{dataset}/subset/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'a', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerows(humans)
-                    with open(f'./output/{dataset}/subset_cost/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'w', newline='') as f:
+                    with open(f'./output/{dataset}/subset_cost/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'a', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerows(cost)
 
