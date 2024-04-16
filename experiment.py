@@ -1,8 +1,7 @@
+import random
 from dependencies import *
 from combiner import *
-import random
-from test_Yhm import *
-from sklearn import metrics
+from estimation_methods import *
 
 def load_data(model_name, dataset):
     """ Loads the predictions (human and model) and true labels.
@@ -27,11 +26,6 @@ def load_data(model_name, dataset):
         model_probs = data[:, 148:164]
 
         true_labels = true_labels.astype(int)
-    
-    elif(model_name == 'lstm_hate_speech_data_clean'):
-        true_labels = data[:, 5]
-        human_counts = data[:, 2:5]
-        model_probs = data[:, 7:]
 
     return human_counts, model_probs, true_labels
 
@@ -71,21 +65,20 @@ def get_acc(y_pred, y_true):
     print("Invalid Arguments")
 
 def main():
-    n_runs = 10
-    # test_sizes = [0.999, 0.99, 0.9, 0.0001]
-    test_sizes = [0.95, 0.9, 0.5, 0.0001] # use this test_sizes for experiments
+    n_runs = 1
+    test_sizes = [0.95, 0.9, 0.75, 0.5]
 
     # cost_function = 'random'
-    dataset = 'imagenet'
+    dataset = 'cifar10h'
     out_fpath = f'./output/{dataset}/'
     os.makedirs(out_fpath, exist_ok=True)
-    model_names = ['imagenet_data']
+    model_names = ['cnn_data']
 
     for test_size in test_sizes:
 
         for model_name in tqdm(model_names, desc='Models', leave=True):
             # Specify output files
-            output_file_acc = out_fpath + f'{str(len(accuracies))}_{model_name}_accuracy_{int((1-test_size)*10000)}'
+            output_file_acc = out_fpath + f'non_monotone_{str(len(accuracies))}_{model_name}_accuracy_{int((1-test_size)*10000)}'
 
             # Load data
             human_counts, model_probs, y_true = load_data(model_name, dataset)
@@ -94,22 +87,15 @@ def main():
             y_h = simulate_humans(human_counts, y_true, accuracy_list=accuracies)
 
             POLICIES = [
-                # ('single_best_policy', single_best_policy, False),
-                # ('mode_policy', mode_policy, False),
-                # ('weighted_mode_policy', weighted_mode_policy, False),
-                # ('select_all_policy', select_all_policy, False),
-                # ('random', random_policy, False),
-                # ('lb_best_policy', lb_best_policy, True),
                 ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
-                ('pomc', pomc, False),
                 ('eamc', eamc, False),
-                ('linear_program', linear_program, False),
                 ('check_all', check_all, False),
             ]
 
             acc_data = []
             for i in tqdm(range(n_runs), leave=False, desc='Runs'):
                 seed = random.randint(1, 1000)
+
                 # Train/test split
                 y_h_tr, y_h_te, model_probs_tr, model_probs_te, y_true_tr, y_true_te = train_test_split(
                     y_h, model_probs, y_true, test_size=test_size, random_state=i * seed)
@@ -119,25 +105,24 @@ def main():
                 model_probs_te = model_probs
                 y_true_te = y_true
 
-                acc_h = get_acc(y_h_te[:, 0], y_true_te) # considering the accuracy of the best human only
+                # Considering the accuracy of the best human only
+                acc_h = get_acc(y_h_te[:, 0], y_true_te)
                 acc_m = get_acc(np.argmax(model_probs_te, axis=1), y_true_te)
 
-                
                 _acc_data = [acc_h, acc_m]
                 
                 add_predictions("True Labels", y_true_te)
 
                 combiner = MAPOracleCombiner()
-
                 combiner.fit(model_probs_tr, y_h_tr, y_true_tr)
 
-                # confusion_matrix_model = metrics.confusion_matrix(y_true_te, np.argmax(model_probs_te, axis=1))
-
                 for policy_name, policy, use_true_labels in POLICIES:
+                    # Cost of a human is random, but remains fixed for a given run
+                    h_costs_for_run = [[np.random.uniform(0.0001, len(model_probs_te[0])) for _ in range(NUM_HUMANS)] for _ in range(len(y_h_te))]
 
-                    # generate estimated human labels
-                    # y_h_te, bad_humans = test_Yhm_estimate_human_labels(len(accuracies), combiner.confusion_matrix, confusion_matrix_model, model_probs_te, accuracies)
-                    humans,cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, model_probs_te.shape[1])
+                    # Call to policy() to return human subsets and costs
+                    humans, cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, h_costs_for_run, model_probs_te.shape[1])
+
                     with open(f'./output/{dataset}/subset/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'a', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerows(humans)
