@@ -329,36 +329,35 @@ def check_all(combiner, hx, tx, mx, num_humans, num_classes=10):
     costs_of_subsets = []
     hcm_list = combiner.confusion_matrix
     mpv_list = mx
-    B = num_humans*len(mpv_list[0])*0.375
+    # B = num_humans*len(mpv_list[0])*0.375
 
-    def v_f(hi_list, h, j_star):
-        phi = hcm_list[h]
-        epsilon = np.max(np.diag(phi))
-        p = phi[hi_list[h]][j_star]
-        return p/(1-p)
-        # return (p + epsilon) / (2 - (p + epsilon))
+    # def v_f(hi_list, h, j_star):
+    #     phi = hcm_list[h]
+    #     epsilon = np.max(np.diag(phi))
+    #     p = phi[hi_list[h]][j_star]
+    #     # return p/(1-p)
+    #     return (p + epsilon) / (2 - (p + epsilon))
+    #     # return (2 + p - epsilon)/(3 - (p + epsilon))
     
-    def f(x,a):
-        return x/(1-x)
-        # return (x+a)/(2-(x+a))
+    # def f(x,a):
+    #     # return x/(1-x)
+    #     return (x+a)/(2-(x+a))
+    #     # return (2 + x - a)/(3 - (x + a))
     
-    for m in range(len(mpv_list)):
+    # for m in range(len(mpv_list)):
+        # est = hx[m]
+    for idx, mpv in enumerate(mpv_list):
         # _, est = test_Yhm(hcm_list, mpv)
-        est = hx[m]
-
-        # get estimated ground truth: choose the one that maximises the product of all hcm values at estimated human label
-        j_star = -1
-        maxi = -1
-        for j in range(num_classes):
-            p = 1
-            for i in range(num_humans):
-                p *= f(hcm_list[i][est[i]][j], np.max(np.diag(hcm_list[i])))
-            if p > maxi:
-                maxi = p
-                j_star = j
+        # print('Instance', idx)
+        # for i in range(num_humans):
+        #     p = hcm_list[i][est[i]][est[i]]
+        #     # print(i, np.mean(np.diag(hcm_list[i])), p + np.min(np.diag(hcm_list[i])) - (np.max(np.diag(hcm_list[i]))/2 + 1))
+        #     # print(i, np.mean(np.diag(hcm_list[i])), p + 2*np.min(np.diag(hcm_list[i])) - 3/2)
+        #     print(i, np.mean(np.diag(hcm_list[i])), (p + 2*np.min(np.diag(hcm_list[i])) - 1) / (3 - (p + 2*np.min(np.diag(hcm_list[i])))), p + 2*np.min(np.diag(hcm_list[i])))
+        # print("\n\n")
 
         h_costs = {i : int(np.random.uniform(0.0001, len(mpv_list[0]))) for i in range(num_humans)}
-        h_values = {i: v_f(est,i,j_star) for i in range(num_humans)}
+        # h_values = {i: v_f(est,i,j_star) for i in range(num_humans)}
 
         total = 1<<num_humans
         max_value = -1
@@ -367,13 +366,17 @@ def check_all(combiner, hx, tx, mx, num_humans, num_classes=10):
         for i in range(total):
             subset = []
             curr_cost = 0
-            curr_value = 1
+            bit_rep = []          
             for j in range(num_humans):
                 if i & (1<<j):
+                    bit_rep.append(1)
                     curr_cost += h_costs[j]
-                    curr_value *= h_values[j]
+                    # curr_value *= h_values[j]
                     subset.append(j)
-            if curr_value > max_value and curr_cost <= B:
+                else:
+                    bit_rep.append(0)
+            curr_value = value(bit_rep, hcm_list, mpv)
+            if curr_value > max_value: # and curr_cost <= B
                 max_value = curr_value
                 best_set = subset
                 cost_of_best_set = curr_cost
