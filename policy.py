@@ -2,6 +2,7 @@ import math
 import random
 import numpy as np
 import pandas as pd
+from cost_function import c5 as cost
 from value_function import value
 from estimation_methods import posterior_estimation
 
@@ -44,7 +45,7 @@ def dump_policy(i):
     df.to_csv(f"./log/policy_{i}.csv")
 
 """Subset Selection Methods Used in Our Experiments"""
-def pseudo_lb_best_policy_overloaded(combiner, hx, tx, mx, num_humans, h_costs, num_classes=10):
+def pseudo_lb_best_policy_overloaded(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
 
     def f(x):
         return x / (1 - x)
@@ -69,11 +70,11 @@ def pseudo_lb_best_policy_overloaded(combiner, hx, tx, mx, num_humans, h_costs, 
     
     return optimal,cost_of_subset
 
-def eamc(combiner, hx, tx, mx, num_humans, h_costs, num_classes=10):
+def eamc(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
     def g(x, hcm_list, mpv, B, idx):
         if sum(x) == 0:
-            return value(x, hcm_list, mpv)
-        return value(x, hcm_list, mpv)/(1 - math.exp(-cost([i for i in range(len(x)) if x[i] == 1],mpv,hcm_list, h_costs[idx])/B))
+            return value(x, hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx])
+        return value(x, hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx])/(1 - math.exp(-cost([i for i in range(len(x)) if x[i] == 1],mpv,hcm_list, h_costs[idx])/B))
     
     hcm_list = combiner.confusion_matrix
     mpv_list = mx
@@ -97,7 +98,7 @@ def eamc(combiner, hx, tx, mx, num_humans, h_costs, num_classes=10):
                 else:
                     if g(x1, hcm_list, mpv, B, idx) >= g(u[sz], hcm_list, mpv, B, idx):
                         u[sz] = x1
-                    if value(x1, hcm_list, mpv) >= value(v[sz], hcm_list, mpv):
+                    if value(x1, hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx]) >= value(v[sz], hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx]):
                         v[sz] = x1
                     P.remove(bin[sz][0])
                     P.remove(bin[sz][1]) if bin[sz][1] != bin[sz][0] else None
@@ -105,15 +106,15 @@ def eamc(combiner, hx, tx, mx, num_humans, h_costs, num_classes=10):
                     bin[sz][0] = u[sz]
                     bin[sz][1] = v[sz]
             
-        x = max(P, key=lambda x: value(x, hcm_list, mpv))
+        x = max(P, key=lambda x: value(x, hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx]))
         subset = [i for i in range(len(x)) if x[i] == 1]
         cost_of_subset.append([cost(subset,mpv,combiner.confusion_matrix, h_costs[idx])])
-        humans.append((subset, value(x, hcm_list, mpv)))
+        humans.append(subset)
         print(len(humans)) if len(humans)%1000 == 0 else None
 
-    return humans,cost_of_subset
+    return humans, cost_of_subset
 
-def check_all(combiner, hx, tx, mx, num_humans, h_costs, num_classes=10):
+def brute_force(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, num_classes=10):
     chosen_subsets = []
     costs_of_subsets = []
     hcm_list = combiner.confusion_matrix
@@ -159,13 +160,34 @@ def check_all(combiner, hx, tx, mx, num_humans, h_costs, num_classes=10):
                     bit_rep.append(1)
                 else:
                     bit_rep.append(0)
-            curr_value = value(bit_rep, hcm_list, mpv)
+            curr_value = value(bit_rep, hcm_list, mpv, estimated_true_labels[idx])
             if curr_value > max_value: # and curr_cost <= B
                 max_value = curr_value
                 best_set = subset
                 cost_of_best_set = curr_cost
             
-        chosen_subsets.append((best_set, max_value))
+        chosen_subsets.append(best_set)
         costs_of_subsets.append([cost_of_best_set])
 
+    return chosen_subsets, costs_of_subsets
+
+def greedy_policy(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
+    chosen_subsets = []
+    costs_of_subsets = []
+    hcm_list = combiner.confusion_matrix
+    mpv_list = mx
+
+    for idx, mpv in enumerate(mpv_list):
+        subset = []
+        subset_cost = 0
+        for h, hcm in enumerate(hcm_list):
+            human = [0]*num_humans
+            human[h] = 1
+            h_val = value(human, hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx])
+            if h_val > 1:
+                subset.append(h)
+                subset_cost += h_costs[idx][h]
+        chosen_subsets.append(subset)
+        costs_of_subsets.append([subset_cost])
+    
     return chosen_subsets, costs_of_subsets

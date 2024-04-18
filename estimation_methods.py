@@ -1,13 +1,14 @@
 import numpy as np
 
 def posterior_estimation(hcm_list, mpv):
+    NUM_CLASSES = len(mpv)
     y_h_star = []
     posterior_star = []
     for hcm in hcm_list:
         posterior_list = []
-        for y_h in range(10):
+        for y_h in range(NUM_CLASSES):
             posterior = 0
-            for y in range(10):
+            for y in range(NUM_CLASSES):
                 posterior += (hcm[y_h][y] * mpv[y])
             posterior_list.append(posterior)
         posterior_star.append(np.max(posterior_list))

@@ -2,10 +2,11 @@ import random
 from dependencies import *
 from combiner import *
 from estimation_methods import *
+from value_function import value
 
 def load_data(model_name, dataset):
     """ Loads the predictions (human and model) and true labels.
-        Datasets: cnn_data (CIFAR-10H), resnet152_imagenet_data_counts (IMAGENET-16H), lstm_hate_speech_data_clean (Hate Speech and Offensive Language)
+        Datasets: cnn_data (CIFAR-10H), resnet152_imagenet_data_counts (IMAGENET-16H)
     """
     dirname = PROJECT_ROOT
 
@@ -64,21 +65,50 @@ def get_acc(y_pred, y_true):
         return np.mean(y_pred == y_true)
     print("Invalid Arguments")
 
+def get_run_data(model_probs_te, combiner):
+    NUM_INSTANCES = model_probs_te.shape[0]
+    NUM_CLASSES = model_probs_te.shape[1]
+
+    # Estimating human labels for a given run, choose h(x) by posterior estimation
+    estimated_human_labels = []
+    for mpv in model_probs_te:
+        _, est = posterior_estimation(combiner.confusion_matrix, mpv)
+        estimated_human_labels.append(est)
+
+    # Estimating the ground truth for a given run, choose y_cap that maximizes the value function
+    estimated_true_labels = []
+    for idx, mpv in enumerate(model_probs_te):
+        v = 1e-9
+        y_cap = 0
+        for j in range(NUM_CLASSES):
+            curr_value = value(np.ones(NUM_HUMANS), combiner.confusion_matrix, mpv, j, estimated_human_labels[idx])
+            if curr_value > v:
+                v = curr_value
+                y_cap = j
+        estimated_true_labels.append(y_cap)
+
+    # Cost of a human is random, but remains fixed for a given run
+    h_costs_for_run = [[np.random.uniform(0.0001, NUM_CLASSES) for _ in range(NUM_HUMANS)] for _ in range(NUM_INSTANCES)]
+    
+    return estimated_true_labels, h_costs_for_run, estimated_human_labels
+
 def main():
     n_runs = 1
-    test_sizes = [0.95, 0.9, 0.75, 0.5]
+    # test_sizes = [0.95, 0.9, 0.75, 0.5]
+    test_sizes = [0.95]
 
-    # cost_function = 'random'
     dataset = 'cifar10h'
+    model_names = ['cnn_data']
+    # dataset = 'imagenet'
+    # model_names = ['imagenet_data']
     out_fpath = f'./output/{dataset}/'
     os.makedirs(out_fpath, exist_ok=True)
-    model_names = ['cnn_data']
 
     for test_size in test_sizes:
 
         for model_name in tqdm(model_names, desc='Models', leave=True):
             # Specify output files
-            output_file_acc = out_fpath + f'non_monotone_{str(len(accuracies))}_{model_name}_accuracy_{int((1-test_size)*10000)}'
+            output_file_acc = out_fpath + f'{str(len(accuracies))}_{model_name}_accuracy_{int((1-test_size)*10000)}'
 
             # Load data
             human_counts, model_probs, y_true = load_data(model_name, dataset)
@@ -89,7 +119,7 @@ def main():
             POLICIES = [
                 ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
                 ('eamc', eamc, False),
-                ('check_all', check_all, False),
+                ('greedy', greedy_policy, False),
             ]
 
             acc_data = []
@@ -116,12 +146,12 @@ def main():
                 combiner = MAPOracleCombiner()
                 combiner.fit(model_probs_tr, y_h_tr, y_true_tr)
 
-                for policy_name, policy, use_true_labels in POLICIES:
-                    # Cost of a human is random, but remains fixed for a given run
-                    h_costs_for_run = [[np.random.uniform(0.0001, len(model_probs_te[0])) for _ in range(NUM_HUMANS)] for _ in range(len(y_h_te))]
+                # Get run data
+                estimated_true_labels, h_costs_for_run, estimated_human_labels = get_run_data(model_probs_te, combiner)
 
+                for policy_name, policy, use_true_labels in POLICIES:
                     # Call to policy() to return human subsets and costs
-                    humans, cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, h_costs_for_run, model_probs_te.shape[1])
+                    humans, cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, h_costs_for_run, estimated_true_labels, estimated_human_labels, model_probs_te.shape[1])
 
                     with open(f'./output/{dataset}/subset/{str(len(accuracies))}_{int((1-test_size)*10000)}_{policy_name}.csv', 'a', newline='') as f:
                         writer = csv.writer(f)
