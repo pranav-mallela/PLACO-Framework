@@ -1,5 +1,6 @@
 import math
 import random
+import pulp
 import numpy as np
 import pandas as pd
 from cost_function import c5 as cost
@@ -190,4 +191,40 @@ def greedy_policy(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labe
         chosen_subsets.append(subset)
         costs_of_subsets.append([subset_cost])
     
+    return chosen_subsets, costs_of_subsets
+
+def linear_program(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
+    chosen_subsets = []
+    costs_of_subsets = []
+    hcm_list = combiner.confusion_matrix
+    mpv_list = mx
+    B = num_humans*len(mpv_list[0])*0.375
+
+    for idx, mpv in enumerate(mpv_list):
+        h_vals = [value([1 if i == h else 0 for i in range(num_humans)], hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx]) for h in range(num_humans)]
+
+        # Suppress printing during the solving process
+        pulp.LpSolverDefault.msg = 0
+    
+        # Create a LP problem
+        prob = pulp.LpProblem("Optimal Human Subset Selection", pulp.LpMaximize)
+
+        # Define decision variables
+        x = pulp.LpVariable.dicts("Select", range(num_humans), lowBound=0, upBound=1, cat=pulp.LpBinary)
+
+        # Objective function: maximize the product of the values
+        prob += pulp.lpSum(h_vals[i] * x[i] for i in range(num_humans))
+
+        # Constraint: total cost must be less than or equal to the budget
+        prob += pulp.lpSum(h_costs[idx][i] * x[i] for i in range(num_humans)) <= B
+
+        # Solve the LP problem
+        prob.solve()
+
+        # Optimal subset
+        optimal_set = [i for i in range(num_humans) if x[i].varValue == 1]
+        cost_of_set = sum(h_costs[idx][i] for i in optimal_set)
+        chosen_subsets.append(optimal_set)
+        costs_of_subsets.append([cost_of_set])
+
     return chosen_subsets, costs_of_subsets

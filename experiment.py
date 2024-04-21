@@ -93,14 +93,13 @@ def get_run_data(model_probs_te, combiner):
     return estimated_true_labels, h_costs_for_run, estimated_human_labels
 
 def main():
-    n_runs = 1
-    # test_sizes = [0.95, 0.9, 0.75, 0.5]
-    test_sizes = [0.95]
+    n_runs = 10
+    test_sizes = [0.95, 0.9, 0.75, 0.5]
 
-    dataset = 'cifar10h'
-    model_names = ['cnn_data']
-    # dataset = 'imagenet'
-    # model_names = ['imagenet_data']
+    # dataset = 'cifar10h'
+    # model_names = ['cnn_data']
+    dataset = 'imagenet'
+    model_names = ['imagenet_data']
     out_fpath = f'./output/{dataset}/'
     os.makedirs(out_fpath, exist_ok=True)
 
@@ -117,9 +116,10 @@ def main():
             y_h = simulate_humans(human_counts, y_true, accuracy_list=accuracies)
 
             POLICIES = [
+                ('linear_program', linear_program, False),
                 ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
-                ('eamc', eamc, False),
                 ('greedy', greedy_policy, False),
+                # ('eamc', eamc, False),
             ]
 
             acc_data = []
