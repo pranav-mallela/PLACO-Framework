@@ -181,13 +181,20 @@ def greedy_policy(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labe
     for idx, mpv in enumerate(mpv_list):
         subset = []
         subset_cost = 0
+        h_max, h_max_val = -1, -1
         for h, hcm in enumerate(hcm_list):
             human = [0]*num_humans
             human[h] = 1
             h_val = value(human, hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx])
+            if h_val > h_max_val:
+                h_max_val = h_val
+                h_max = h
             if h_val > 1:
                 subset.append(h)
                 subset_cost += h_costs[idx][h]
+        if len(subset) == 0:
+            subset.append(h_max)
+            subset_cost += h_costs[idx][h_max]
         chosen_subsets.append(subset)
         costs_of_subsets.append([subset_cost])
     

@@ -6,7 +6,12 @@ def value(x, hcm_list, mpv, y_cap, est):
     def func(p,phi,i):
         a = np.min(np.diag(phi))
         if(acc_list[i] >= 0.5):
-            return (p + 2*a - 1)/(2 - (p + 2*a)) if (p + 2*a) < 2 else 1e9
+            if (p + 2*a) < 1:
+                return 1e-9
+            elif (p + 2*a) >= 2:
+                return 1e9
+            else:
+                return (p + 2*a - 1)/(2 - (p + 2*a))
         else:
             return 1e-9
     
