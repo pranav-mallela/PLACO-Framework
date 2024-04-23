@@ -172,7 +172,7 @@ def brute_force(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels
 
     return chosen_subsets, costs_of_subsets
 
-def greedy_policy(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
+def PLACO_greedy(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
     chosen_subsets = []
     costs_of_subsets = []
     hcm_list = combiner.confusion_matrix
@@ -200,12 +200,12 @@ def greedy_policy(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labe
     
     return chosen_subsets, costs_of_subsets
 
-def linear_program(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
+def PLACO_lp(combiner, hx, tx, mx, num_humans, h_costs, estimated_true_labels, estimated_human_labels, num_classes=10):
     chosen_subsets = []
     costs_of_subsets = []
     hcm_list = combiner.confusion_matrix
     mpv_list = mx
-    B = num_humans*len(mpv_list[0])*0.375
+    B = num_humans*len(mpv_list[0])*0.05
 
     for idx, mpv in enumerate(mpv_list):
         h_vals = [value([1 if i == h else 0 for i in range(num_humans)], hcm_list, mpv, estimated_true_labels[idx], estimated_human_labels[idx]) for h in range(num_humans)]
