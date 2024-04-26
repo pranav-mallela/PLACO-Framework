@@ -14,4 +14,6 @@ python3 experiment.py
 
 Accuracies of humans in the subset can be specified in dependencies.py
 
+Dataset can be specified in `main()` in experiments.py 
+
 Plots can be plotted in plot.ipynb
