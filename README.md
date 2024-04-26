@@ -1,6 +1,6 @@
 # Human AI Team
 
-Python version: 3.10.6
+Python version: 3.11.5
 
 Install requirements
 ```

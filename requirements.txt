@@ -12,3 +12,4 @@ torch==1.12.1
 pyro-api==0.1.2
 pyro-ppl==1.8.1
 uncertainty-calibration==0.0.9
+pulp==2.8.0

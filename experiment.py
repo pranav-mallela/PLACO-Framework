@@ -116,8 +116,8 @@ def main():
             y_h = simulate_humans(human_counts, y_true, accuracy_list=accuracies)
 
             POLICIES = [
-                # ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
-                # ('greedy', PLACO_greedy, False),
+                ('pseudo_lb', pseudo_lb_best_policy_overloaded, False),
+                ('greedy', PLACO_greedy, False),
                 ('linear_program', PLACO_lp, False),
             ]
 
