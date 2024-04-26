@@ -148,6 +148,14 @@ def main():
                 # Get run data
                 estimated_true_labels, h_costs_for_run, estimated_human_labels = get_run_data(model_probs_te, combiner)
 
+                # Calculate percentage match of estimated_human_labels with y_h_te
+                match = np.mean([np.sum(estimated_human_labels[i] == y_h_te[i]) for i in range(len(y_h_te))])/NUM_HUMANS
+                with open(f'./output/{dataset}/estimation_match/{str(len(accuracies))}_{int((1-test_size)*10000)}_random.csv', 'a', newline='') as f:
+                    writer = csv.writer(f)
+                    writer.writerows([[match]])
+                
+                continue
+
                 for policy_name, policy, use_true_labels in POLICIES:
                     # Call to policy() to return human subsets and costs
                     humans, cost = policy(combiner, y_h_te, y_true_te if use_true_labels else None, model_probs_te, NUM_HUMANS, h_costs_for_run, estimated_true_labels, estimated_human_labels, model_probs_te.shape[1])
