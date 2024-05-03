@@ -1,1 +1,2 @@
-human,model
+human,model,pseudo_lb,greedy,linear_program
+0.7052,0.5674,0.9094,0.9328,0.7001
