@@ -18,4 +18,6 @@ Accuracies of humans in the subset can be specified in dependencies.py
 
 Dataset can be specified in `main()` in experiments.py 
 
-Plots can be plotted in plot.ipynb
+Plots can be plotted in output/plots.ipynb
+
+All results including csvs and plots can be found in ./output
