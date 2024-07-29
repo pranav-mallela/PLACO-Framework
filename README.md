@@ -1,4 +1,6 @@
-# Human AI Team
+# PLACO Framework
+
+This is the codebase for the paper 'PLACO: A Multi-Stage Framework for Cost-Effective Performance in Human-AI Teams'.
 
 Python version: 3.11.5
 
