@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use this code, please cite it as below."
+authors:
+- family-names: "Mallela"
+  given-names: "Pranav"
+- family-names: "Kumar"
+  given-names: "Vinay"
+- family-names: "Jha"
+  given-names: "Shashi Shekhar"
+- family-names: "Jain"
+  given-names: "Shweta"
+title: "PLACO: A Multi-Stage Framework for Cost-Effective Performance in Human-AI Teams"
+version: 2.0.4
+doi: ""
+date-released: 2024-7-4
+url: "https://github.com/pranav-mallela/PLACO-Framework"
